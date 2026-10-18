@@ -34,6 +34,7 @@ h1{font-family:var(--display);font-weight:400;font-size:1.5rem;margin:0;letter-s
 .target{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .team{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
 .team::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:var(--c)}
+.team.ahead{border-color:var(--c);box-shadow:0 0 0 1px var(--c)}
 .team.red{--c:var(--red);--soft:var(--red-soft)}
 .team.green{--c:var(--green);--soft:var(--green-soft)}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -42,7 +43,7 @@ h1{font-family:var(--display);font-weight:400;font-size:1.5rem;margin:0;letter-s
 .lead{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--c);background:var(--soft);padding:3px 8px;border-radius:999px;white-space:nowrap}
 .score{font-family:var(--display);font-size:4.5rem;line-height:1;font-variant-numeric:tabular-nums;text-align:center;padding-block:4px}
 .score.neg{color:var(--red)}
-.btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.btns{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 button{font:700 1.1rem var(--body);border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:14px 0;cursor:pointer;touch-action:manipulation;font-variant-numeric:tabular-nums}
 button:active{transform:scale(.96)}
 button:focus-visible{outline:2px solid var(--c,var(--fg));outline-offset:2px}
@@ -65,9 +66,10 @@ button:focus-visible{outline:2px solid var(--c,var(--fg));outline-offset:2px}
   </header>
 
   <section class="team red" data-t="0">
-    <div class="top"><input class="name" id="name0" value="Us" aria-label="Team 1 name"><span class="lead" hidden>Leading</span></div>
+    <div class="top"><input class="name" id="name0" value="Us" aria-label="Team 1 name"><span class="lead" hidden>In the lead</span></div>
     <div class="score" aria-live="polite">0</div>
     <div class="btns">
+      <button class="minus" data-d="-10">−10</button>
       <button class="minus" data-d="-5">−5</button>
       <button class="plus" data-d="5">+5</button>
       <button class="plus" data-d="10">+10</button>
@@ -76,9 +78,10 @@ button:focus-visible{outline:2px solid var(--c,var(--fg));outline-offset:2px}
   </section>
 
   <section class="team green" data-t="1">
-    <div class="top"><input class="name" id="name1" value="Them" aria-label="Team 2 name"><span class="lead" hidden>Leading</span></div>
+    <div class="top"><input class="name" id="name1" value="Them" aria-label="Team 2 name"><span class="lead" hidden>In the lead</span></div>
     <div class="score" aria-live="polite">0</div>
     <div class="btns">
+      <button class="minus" data-d="-10">−10</button>
       <button class="minus" data-d="-5">−5</button>
       <button class="plus" data-d="5">+5</button>
       <button class="plus" data-d="10">+10</button>
@@ -106,7 +109,7 @@ function render(){
     sc.textContent=s.scores[i];
     sc.classList.toggle("neg",s.scores[i]<0);
     el.querySelector(".name").value=s.names[i];
-    el.querySelector(".lead").hidden=!(s.scores[i]>s.scores[1-i]);
+    {const a=s.scores[i]>s.scores[1-i];el.querySelector(".lead").hidden=!a;el.classList.toggle("ahead",a);}
   });
 }
 teams.forEach((el,i)=>{
@@ -117,7 +120,7 @@ teams.forEach((el,i)=>{
     save();render();
   }));
   el.querySelector(".name").addEventListener("input",e=>{s.names[i]=e.target.value||`Team ${i+1}`;save();
-    el.querySelector(".lead").hidden=!(s.scores[i]>s.scores[1-i])});
+    });
 });
 document.getElementById("undo").addEventListener("click",()=>{
   const h=s.hist.pop(); if(!h){log.textContent="Nothing to undo";return}
