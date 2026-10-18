@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Rook Scorekeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Archivo:wght@500;700&display=swap">
+<style>
+/* Layout: two stacked team panels styled like Rook suit colors, a shared control bar at the bottom */
+:root{
+  --bg:#eef0ea; --panel:#fbfcf8; --fg:#1d2420; --muted:#66706a; --line:#d5dad2;
+  --red:#c2362b; --green:#2d7d4a; --red-soft:#f6e1de; --green-soft:#dcefe2;
+  --display:"Alfa Slab One", Rockwell, "Roboto Slab", Georgia, serif;
+  --body:"Archivo", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141916; --panel:#1d2420; --fg:#eef1ec; --muted:#9aa49d; --line:#313a35;
+  --red:#ef6a5c; --green:#5cc184; --red-soft:#3a2321; --green-soft:#1f3527; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141916; --panel:#1d2420; --fg:#eef1ec; --muted:#9aa49d; --line:#313a35;
+  --red:#ef6a5c; --green:#5cc184; --red-soft:#3a2321; --green-soft:#1f3527; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:16px;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-height:100%}
+header{display:flex;justify-content:space-between;align-items:baseline}
+h1{font-family:var(--display);font-weight:400;font-size:1.5rem;margin:0;letter-spacing:.01em}
+.target{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.team{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.team::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:var(--c)}
+.team.red{--c:var(--red);--soft:var(--red-soft)}
+.team.green{--c:var(--green);--soft:var(--green-soft)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.name{font:700 1rem var(--body);color:var(--c);background:none;border:0;border-bottom:1px dashed transparent;padding:2px 0;min-width:0;width:100%}
+.name:focus{outline:none;border-bottom-color:var(--c)}
+.lead{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--c);background:var(--soft);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.score{font-family:var(--display);font-size:4.5rem;line-height:1;font-variant-numeric:tabular-nums;text-align:center;padding-block:4px}
+.score.neg{color:var(--red)}
+.btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+button{font:700 1.1rem var(--body);border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:14px 0;cursor:pointer;touch-action:manipulation;font-variant-numeric:tabular-nums}
+button:active{transform:scale(.96)}
+button:focus-visible{outline:2px solid var(--c,var(--fg));outline-offset:2px}
+.plus{background:var(--soft);border-color:transparent;color:var(--c)}
+.minus{background:var(--panel)}
+.bar{display:flex;gap:8px;margin-top:auto}
+.bar button{flex:1;font-size:.95rem}
+.reset{color:var(--red)}
+.reset.armed{background:var(--red);color:var(--panel);border-color:var(--red)}
+.log{font-size:.8rem;color:var(--muted);text-align:center;min-height:1.2em}
+@media (prefers-reduced-motion:reduce){button:active{transform:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Rook</h1>
+    <span class="target">Game to 500</span>
+  </header>
+
+  <section class="team red" data-t="0">
+    <div class="top"><input class="name" id="name0" value="Us" aria-label="Team 1 name"><span class="lead" hidden>Leading</span></div>
+    <div class="score" aria-live="polite">0</div>
+    <div class="btns">
+      <button class="minus" data-d="-5">−5</button>
+      <button class="plus" data-d="5">+5</button>
+      <button class="plus" data-d="10">+10</button>
+      <button class="plus" data-d="20">+20</button>
+    </div>
+  </section>
+
+  <section class="team green" data-t="1">
+    <div class="top"><input class="name" id="name1" value="Them" aria-label="Team 2 name"><span class="lead" hidden>Leading</span></div>
+    <div class="score" aria-live="polite">0</div>
+    <div class="btns">
+      <button class="minus" data-d="-5">−5</button>
+      <button class="plus" data-d="5">+5</button>
+      <button class="plus" data-d="10">+10</button>
+      <button class="plus" data-d="20">+20</button>
+    </div>
+  </section>
+
+  <div class="log" id="log"></div>
+  <div class="bar">
+    <button id="undo">Undo</button>
+    <button id="reset" class="reset">Reset</button>
+  </div>
+</div>
+
+<script>
+const KEY="rook-score-v1";
+let s={scores:[0,0],names:["Us","Them"],hist:[]};
+try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&v.scores)s=v}catch(e){}
+const teams=[...document.querySelectorAll(".team")];
+const log=document.getElementById("log");
+function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+function render(){
+  teams.forEach((el,i)=>{
+    const sc=el.querySelector(".score");
+    sc.textContent=s.scores[i];
+    sc.classList.toggle("neg",s.scores[i]<0);
+    el.querySelector(".name").value=s.names[i];
+    el.querySelector(".lead").hidden=!(s.scores[i]>s.scores[1-i]);
+  });
+}
+teams.forEach((el,i)=>{
+  el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+    const d=+b.dataset.d;
+    s.scores[i]+=d; s.hist.push([i,d]); if(s.hist.length>200)s.hist.shift();
+    log.textContent=`${s.names[i]} ${d>0?"+":"−"}${Math.abs(d)}`;
+    save();render();
+  }));
+  el.querySelector(".name").addEventListener("input",e=>{s.names[i]=e.target.value||`Team ${i+1}`;save();
+    el.querySelector(".lead").hidden=!(s.scores[i]>s.scores[1-i])});
+});
+document.getElementById("undo").addEventListener("click",()=>{
+  const h=s.hist.pop(); if(!h){log.textContent="Nothing to undo";return}
+  s.scores[h[0]]-=h[1]; log.textContent=`Undid ${s.names[h[0]]} ${h[1]>0?"+":"−"}${Math.abs(h[1])}`;
+  save();render();
+});
+const rb=document.getElementById("reset");let armT;
+rb.addEventListener("click",()=>{
+  if(!rb.classList.contains("armed")){rb.classList.add("armed");rb.textContent="Tap again to reset";
+    clearTimeout(armT);armT=setTimeout(()=>{rb.classList.remove("armed");rb.textContent="Reset"},3000);return}
+  clearTimeout(armT);rb.classList.remove("armed");rb.textContent="Reset";
+  s.scores=[0,0];s.hist=[];log.textContent="Scores reset";save();render();
+});
+render();
+</script>
+</body>
+</html>
